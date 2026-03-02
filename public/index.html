@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Universal Festival of Colors</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="intro-screen">
+        <div class="intro-text" id="introMsg">Experience the WebGL 3D Festival of Colors</div>
+        <button class="enter-btn" id="enterBtn">Initialize Engine</button>
+    </div>
+
+    <div class="fadeable-ui controls">
+        <select id="langSelect" class="icon-btn">
+            <option value="en">🇬🇧 English</option>
+            <option value="es">🇪🇸 Español</option>
+            <option value="zh">🇹🇼 繁體中文</option>
+        </select>
+        <button class="icon-btn" id="micToggle">🎤 <span id="micText">Mic Mode</span></button>
+        <button class="icon-btn" id="partyToggle">✨ <span id="partyText">Party Mode</span></button>
+        <button class="icon-btn" id="cleanToggle" style="border-color: #00E5FF; color: #00E5FF;">💧 <span id="cleanText">Wash Canvas</span></button>
+        <button class="icon-btn" id="captureToggle" style="border-color: #FFD700; color: #FFD700;">📸 <span id="captureText">Capture Artwork</span></button>
+        <button class="icon-btn" id="musicToggle">🎵 <span id="musicText">Play Music</span></button>
+    </div>
+
+    <canvas id="webgl-canvas"></canvas>
+    <div id="click-layer"></div>
+    
+    <div class="fadeable-ui hero">
+        <h1 id="mainTitle">Happy Holi</h1>
+        <div class="context-greeting" id="contextGreeting">Detecting local atmosphere...</div>
+        <div class="instruction" id="heroInst">Tap the screen, or enable Mic Mode and speak!<br><br>↓ Discover the Festival ↓</div>
+        <button class="icon-btn guide-btn" id="startGuideBtn">✨ Experience Holi</button>
+    </div>
+
+    <div class="fadeable-ui glass-panel">
+        <h2 id="aboutTitle">A Universal Celebration</h2>
+        <div class="connection-tracker" id="connectionBox">
+            <div class="ping-dot"></div>
+            <span id="geoMessage">Locating your corner of the world...</span>
+        </div>
+        <p id="aboutP1">This experience is powered by Three.js WebGL rendering and the Web Audio API. Turn on Mic Mode and make some noise to see the colors react to the frequency of your voice in real-time 3D space.</p>
+        <p id="aboutP2">Holi is India's most vibrant festival, celebrating the arrival of spring, the victory of good over evil, and the blooming of love. Playfully smear vibrant powders on the digital canvas above!</p>
+        
+        <div class="bridge-grid">
+            <div class="bridge-card">
+                <h4 id="card1Title">🔥 Holika Dahan (The Eve)</h4>
+                <p id="card1Desc">The festival begins the night before. We light massive bonfires to signify the burning away of bad energy and evil spirits, making way for a fresh start.</p>
+            </div>
+            <div class="bridge-card">
+                <h4 id="card2Title">🎨 Rangwali Holi (The Colors)</h4>
+                <p id="card2Desc">The next morning, the real magic happens! We playfully throw 'gulal' (color powder) at each other, celebrating equality and joy.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="fadeable-ui glass-panel simulator-panel">
+        <h2 id="simTitle">Future Holi Simulator</h2>
+        <p id="simDesc" style="text-align: center;">Where will the colors take you next? Select an environment to simulate a future celebration.</p>
+        <div class="sim-controls">
+            <button class="sim-btn" data-env="cyberpunk">🏙️ Urban Skyline</button>
+            <button class="sim-btn" data-env="beach">🌊 Tranquil Beach</button>
+            <button class="sim-btn" data-env="mountain">🏔️ High Altitude</button>
+        </div>
+        <div class="sim-output" id="simOutput">Select a destination to initiate the simulation...</div>
+    </div>
+
+    <div class="vault">
+    <img src="assets/photo1.jpg" alt="Holi Celebration 1">
+    <img src="assets/photo2.jpg" alt="Holi Celebration 2">
+    <img src="assets/photo3.jpg" alt="Holi Celebration 3">
+    
+    <img src="assets/photo4.jpg" alt="Holi Celebration 4">
+    <img src="assets/photo5.jpg" alt="Holi Celebration 5">
+    <img src="assets/photo6.jpg" alt="Holi Celebration 6">
+</div>
+    </div>
+
+    <div class="fadeable-ui theme-selector">
+        <div class="theme-label" id="moodLabel">Choose Your Holi Mood</div>
+        <div class="theme-buttons">
+            <button class="theme-btn active" data-theme="neon">🔥 Passionate Neon</button>
+            <button class="theme-btn" data-theme="romantic">🌸 Soft Romantic</button>
+            <button class="theme-btn" data-theme="cosmic">🌌 Cosmic Holi</button>
+            <button class="theme-btn" data-theme="spiritual">🌿 Calm Spiritual</button>
+        </div>
+    </div>
+
+    <button class="fadeable-ui" id="aiChatFab">🤖 Ask AI Guide</button>
+    <div class="ai-chat-window" id="aiChatWindow">
+        <div class="ai-chat-header">
+            <span>✨ AI Festival Guide</span>
+            <button id="closeAiChat">&times;</button>
+        </div>
+        <div class="ai-chat-body" id="aiChatBody">
+            <div class="ai-msg">Namaste! I am your intelligent guide to the Festival of Colors. Ask me anything about Holi!</div>
+        </div>
+        <div class="ai-chat-input">
+            <input type="text" id="aiInput" placeholder="Why do we throw colors?">
+            <button id="aiSendBtn">➤</button>
+        </div>
+    </div>
+
+    <div id="story-overlay">
+        <div id="breathing-circle"></div>
+        <div id="story-text"></div>
+        <div id="guided-end-buttons">
+            <button class="icon-btn" id="storyDownloadBtn" style="border-color: #FFD700; color: #FFD700;">📸 Download Artwork</button>
+            <button class="icon-btn" id="storyRestartBtn">✨ Celebrate Again</button>
+        </div>
+    </div>
+
+    <audio id="bg-music" loop>
+        <source src="assets/song.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
