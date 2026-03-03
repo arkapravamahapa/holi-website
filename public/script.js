@@ -1,12 +1,10 @@
-// --- 0. AI CONFIGURATION (GEMINI 1.5 FLASH) ---
-// PASTE YOUR KEY HERE
-const GEMINI_API_KEY = "AIzaSyAxJabhhl4Ems6UcfWQG810cXvK_3ZsoXQ"; 
+
 
 // --- 1. ADAPTIVE PERFORMANCE SCALING & GLOBALS ---
 const hardwareCores = navigator.hardwareConcurrency || 4;
 let performanceMultiplier = hardwareCores > 4 ? 1.5 : (hardwareCores < 4 ? 0.6 : 1.0);
-let splatDepth = 0; // Essential for Google-style realistic paint stacking
-let lastMicSplash = 0; // Prevents the microphone from lagging the browser
+let splatDepth = 0; 
+let lastMicSplash = 0; 
 
 // --- 2. PROCEDURAL SPATIAL AUDIO (SAFE MODE) ---
 let synthAudioContext = null;
@@ -45,7 +43,6 @@ function playSpatialSplash(screenX) {
     } catch(e) { console.warn("Spatial audio skipped."); }
 }
 
-// --- 3. MULTILINGUAL DICTIONARY ---
 // --- 3. MULTILINGUAL DICTIONARY ---
 const translations = {
     en: {
@@ -263,7 +260,8 @@ function spawn3DSplash(screenX, screenY, forceColor = null, silent = false) {
     const distance = -camera.position.z / vec.z; 
     pos.copy(camera.position).add(vec.multiplyScalar(distance));
 
-    // Realistic Layering
+    // Reset depth to prevent colors spawning behind camera
+    if (splatDepth > 100) splatDepth = 0; 
     splatDepth += 0.05;
     pos.z = splatDepth; 
 
@@ -322,16 +320,15 @@ function spawn3DSplash(screenX, screenY, forceColor = null, silent = false) {
     }
 }
 
-
 const clickLayer = document.getElementById('click-layer');
-clickLayer.addEventListener('click', (e) => {
+clickLayer.addEventListener('mousedown', (e) => {
     if(storyAwaitingInteraction) { resumeStoryFromInteraction(); }
     spawn3DSplash(e.clientX, e.clientY);
 });
 clickLayer.addEventListener('touchstart', (e) => {
     if(storyAwaitingInteraction) { resumeStoryFromInteraction(); }
     spawn3DSplash(e.touches[0].clientX, e.touches[0].clientY);
-});
+}, {passive: true});
 
 // --- 7. "THE COLORS WITHIN" - GUIDED JOURNEY ---
 const storyOverlay = document.getElementById('story-overlay');
@@ -359,6 +356,10 @@ document.getElementById('startGuideBtn').addEventListener('click', () => {
     document.querySelectorAll('.fadeable-ui').forEach(el => el.style.opacity = '0');
     storyOverlay.style.display = 'flex'; storyOverlay.style.background = 'transparent'; 
     setTimeout(() => storyOverlay.style.opacity = '1', 100);
+
+    // Clear old timeouts
+    timelineTimeouts.forEach(t => clearTimeout(t));
+    timelineTimeouts = [];
 
     changeThemeSilently('stillness');
     spawn3DSplash(window.innerWidth * 0.5, window.innerHeight * 0.8);
@@ -420,31 +421,20 @@ function resumeStoryFromInteraction() {
         showText("The world is brighter because you touched it.", 0);
         storyOverlay.style.background = 'rgba(0,0,0,0.6)';
         storyOverlay.style.pointerEvents = 'all'; 
-        setTimeout(() => { endButtons.classList.add('show'); }, 3000);
+        endButtons.style.display = 'flex'; // Put them back in the layout
+        setTimeout(() => { endButtons.classList.add('show'); }, 100); // Trigger the fade-in
     }, 71000);
 }
 
 document.getElementById('storyRestartBtn').addEventListener('click', () => {
     endButtons.classList.remove('show'); storyText.style.opacity = '0'; storyOverlay.style.opacity = '0';
+    setTimeout(() => { endButtons.style.display = 'none'; }, 1000);
     setTimeout(() => storyOverlay.style.display = 'none', 1000);
     document.querySelectorAll('.fadeable-ui').forEach(el => el.style.opacity = '1');
     isGuidedMode = false; physicsState = "normal"; changeThemeSilently('neon');
     
     particles.forEach(p => { scene.remove(p); p.material.dispose(); }); particles.length = 0; splatDepth = 0;
 });
-
-// --- WASH THE CANVAS ---
-document.getElementById('cleanToggle').addEventListener('click', () => {
-    try { if(navigator.vibrate) navigator.vibrate(20); } catch(e){} 
-    particles.forEach(p => { 
-        scene.remove(p); 
-        p.material.dispose(); 
-    });
-    particles.length = 0; 
-    splatDepth = 0; // Reset the stack so we don't hit the camera!
-});
-
-document.getElementById('storyDownloadBtn').addEventListener('click', () => { document.getElementById('captureToggle').click(); });
 
 // --- 8. SMART AI FESTIVAL GUIDE (BACKEND FETCH) ---
 const chatFab = document.getElementById('aiChatFab');
@@ -472,8 +462,13 @@ async function callGeminiAPI(userMessage) {
     Detect their sentiment: if they sound sad, be warm and uplifting. If they are excited, match their energy.
     Keep your response short, poetic, and under 3 sentences. Do not use markdown formatting.`;
 
+    // --- NEW: SMART API ROUTER ---
+    // This checks if you are testing locally or if the site is live on Vercel
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const apiUrl = isLocal ? 'http://localhost:3000/api/chat' : '/api/chat';
+
     try {
-        const response = await fetch('http://localhost:3000/api/chat', {
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: userMessage, contextPrompt: systemPrompt })
@@ -486,7 +481,6 @@ async function callGeminiAPI(userMessage) {
         return "I'm sorry, the connection to the festival spirits is a bit weak right now. Try asking again!";
     }
 }
-
 aiSendBtn.addEventListener('click', async () => {
     const text = aiInput.value.trim();
     if(!text) return;
@@ -529,6 +523,17 @@ document.getElementById('musicToggle').addEventListener('click', () => {
     if (isPlaying) { music.pause(); document.getElementById('musicText').innerText = translations[langSelect.value].musicText; } 
     else { music.play(); document.getElementById('musicText').innerText = "Pause Music"; }
     isPlaying = !isPlaying;
+});
+
+// WASH THE CANVAS
+document.getElementById('cleanToggle').addEventListener('click', () => {
+    try { if(navigator.vibrate) navigator.vibrate(20); } catch(e){} 
+    particles.forEach(p => { 
+        scene.remove(p); 
+        p.material.dispose(); 
+    });
+    particles.length = 0; 
+    splatDepth = 0; 
 });
 
 // WAKE UP ENGINE
@@ -584,7 +589,6 @@ function animate() {
         let average = sum / dataArray.length;
         
         let now = Date.now();
-        // Cooldown timer to prevent lag loops!
         if (average > 80 && Math.random() > 0.5 && (now - lastMicSplash > 150)) {
             spawn3DSplash(Math.random() * window.innerWidth, Math.random() * window.innerHeight, null, true);
             lastMicSplash = now;
@@ -636,3 +640,23 @@ function animate() {
     renderer.render(scene, camera);
 }
 animate();
+
+// --- 11. MAGICAL MOUSE SPARKLES ---
+const sparkleContainer = document.getElementById('sparkle-container');
+
+window.addEventListener('mousemove', (e) => {
+    const sparkle = document.createElement('div');
+    sparkle.className = 'mouse-sparkle';
+    sparkle.style.left = e.clientX + 'px';
+    sparkle.style.top = e.clientY + 'px';
+    
+    const size = Math.random() * 6 + 2;
+    sparkle.style.width = size + 'px';
+    sparkle.style.height = size + 'px';
+    
+    if(sparkleContainer) sparkleContainer.appendChild(sparkle);
+
+    setTimeout(() => {
+        sparkle.remove();
+    }, 1000);
+});

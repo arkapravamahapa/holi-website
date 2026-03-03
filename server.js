@@ -57,3 +57,6 @@ app.post('/api/chat', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Holi Backend Server running on http://localhost:${PORT}`);
 });
+
+// VERCEL REQUIREMENT: Export the Express app so Vercel can use it
+export default app;
