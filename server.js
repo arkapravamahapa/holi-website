@@ -53,10 +53,17 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`🚀 Holi Backend Server running on http://localhost:${PORT}`);
+// --- KEEP-AWAKE PING ROUTE ---
+app.get('/api/wakeup', (req, res) => {
+    res.status(200).json({ status: "AI is awake and ready!" });
 });
+
+// Start the server (Only run this locally, not on Vercel)
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`🚀 Holi Backend Server running on http://localhost:${PORT}`);
+    });
+}
 
 // VERCEL REQUIREMENT: Export the Express app so Vercel can use it
 export default app;
